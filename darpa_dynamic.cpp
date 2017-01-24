@@ -11,12 +11,12 @@ const int MAX_STATION_NUM = 200 + 1;
 int cameraNum;
 int stationNum;
 double stationArr[MAX_STATION_NUM];
-double cache[MAX_STATION_NUM][MAX_CAMERA_NUM];
+double cache[MAX_STATION_NUM][MAX_CAMERA_NUM][MAX_STATION_NUM];
 
 double solve(int remainCameraNum, int lastStationIdx, int stationIdx) {
 	if (remainCameraNum == 0 || remainCameraNum > stationNum - stationIdx) return -1;
 
-	double& ret = cache[stationIdx][remainCameraNum];
+	double& ret = cache[stationIdx][remainCameraNum][lastStationIdx];
 	if (ret > -0.5) return ret;
 
 	ret = lastStationIdx == -1 ? -1 : stationArr[stationIdx] - stationArr[lastStationIdx];
