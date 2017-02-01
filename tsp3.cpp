@@ -116,11 +116,109 @@
 /* output
 2.0000000000
 1.0000000000
-1183.7811871357
-841.2045646020
 1260.3657842490
+841.2045646020
+1183.7811871357
 (15)262.0
 (17)1564.0
 (20)525.0
 (26)937 - 83 = 854.0
 */
+
+#include <ctime>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <algorithm>
+#include <cstring>
+
+using namespace std;
+
+const double INF = 1.7e+300;
+const int MAX_CITY_NUM = 26 + 1;
+
+int cityNum;
+double dist[MAX_CITY_NUM][MAX_CITY_NUM];
+vector<int> nearest[MAX_CITY_NUM];
+bool visited[MAX_CITY_NUM];
+
+double best;
+
+void tsp3(vector<int> &path, double len) {
+	if (len >= best) return; // 가지치기 1.최적해보다 나빠지면 그만두기
+	if (path.size() == cityNum) {
+		best = len; // best 는 전역변수로 선언 해 둔다
+		return;
+	}
+
+	int here = path.back();
+
+	// 가지치기 2.가까운 도시부터 방문하기
+	for (int i = 0; i < nearest[here].size(); i++) {
+		int next = nearest[here][i];
+
+		//if (here == next) continue; // sortDist() 로 빠짐
+		if (visited[next]) continue;
+
+		visited[next] = true;
+		path.push_back(next);
+		tsp3(path, len + dist[here][next]);
+		visited[next] = false;
+		path.pop_back();
+	}
+
+	return;
+}
+
+void setNearest() {
+	for (int i = 0; i < cityNum; i++) {
+		vector<pair<double, int>> sortedDist;
+
+		for (int j = 0; j < cityNum; j++)
+			if (i != j) // 동일 여부 조건을 전처리로 뺀다
+				sortedDist.push_back(make_pair(dist[i][j], j));
+
+		sort(sortedDist.begin(), sortedDist.end());
+		
+		nearest[i].clear();
+		for (int j = 0; j < cityNum - 1; j++)
+			nearest[i].push_back(sortedDist[j].second);
+	}
+}
+
+double solve() {
+	best = INF;
+	setNearest();
+
+	// 전통적 TSP 와 달리, 원점으로 복귀 안 함
+	for (int i = 0; i < cityNum; i++) {
+		vector<int> path(1, i);
+		visited[i] = true;
+		tsp3(path, 0);
+		visited[i] = false;
+	}
+
+	return best;
+}
+
+int main() {
+	ifstream cin("jinput.txt");
+	ofstream cout("joutput.txt");
+
+	int caseNum;
+	cin >> caseNum;
+	cout << fixed;
+	cout.precision(10);
+
+	for (int caseCnt = 0; caseCnt < caseNum; caseCnt++) {
+		cin >> cityNum;
+
+		clock_t start = clock();
+
+		for (int i = 0; i < cityNum; i++)
+			for (int j = 0; j < cityNum; j++)
+				cin >> dist[i][j];
+
+		cout << (clock() - start) / CLOCKS_PER_SEC << ", " << solve() << endl;
+	}
+}
