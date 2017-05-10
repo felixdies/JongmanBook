@@ -25,8 +25,9 @@ int merge(int u, int v) {
 	if (u == v) return u;
 	
 	if (ranks[u] > ranks[v]) swap(u, v);
-	parent[u] = v;
 	if (ranks[u] == ranks[v]) ranks[v]++;
+	
+	parent[u] = v;
 	sizes[v] += sizes[u];
 	
 	return v;
@@ -66,7 +67,7 @@ int maxParty(int n) {
 		if (parent[node] == node) { // root 인 경우
 			int enemyNode = enemy[node];
 
-			if (enemyNode > node)continue;
+			if (enemyNode > node) continue;
 
 			int mySize = sizes[node];
 			int enemySize = (enemyNode == -1) ? 0 : sizes[enemyNode];
