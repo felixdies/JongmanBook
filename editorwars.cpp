@@ -87,6 +87,11 @@ int main() {
 	while (cs--) {
 		int n, m; cin >> n >> m;
 
+		parent.clear();
+		ranks.clear();
+		sizes.clear();
+		enemy.clear();
+
 		parent = vector<int>(n, 0);
 		ranks = vector<int>(n, 0);
 		sizes = vector<int>(n, 1);
