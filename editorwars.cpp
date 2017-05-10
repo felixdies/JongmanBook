@@ -23,13 +23,12 @@ int merge(int u, int v) {
 	v = find(v);
 
 	if (u == v) return u;
-	
+
 	if (ranks[u] > ranks[v]) swap(u, v);
-	if (ranks[u] == ranks[v]) ranks[v]++;
-	
 	parent[u] = v;
+	if (ranks[u] == ranks[v]) ranks[v]++;
 	sizes[v] += sizes[u];
-	
+
 	return v;
 }
 
@@ -62,20 +61,18 @@ bool dis(int u, int v) {
 }
 
 int maxParty(int n) {
+	vector<bool> checked(n, false);
+
 	int ret = 0;
-	for (int node = 0; node < n; node++) {
-		if (parent[node] == node) { // root 인 경우
-			int enemyNode = enemy[node];
-
-			if (enemyNode > node) continue;
-
-			int mySize = sizes[node];
-			int enemySize = (enemyNode == -1) ? 0 : sizes[enemyNode];
-
-			ret += max(mySize, enemySize);
+	for (int i = 0; i < n; i++) {
+		int u = find(i);
+		int v = enemy[u] == -1 ? u : find(enemy[u]);
+		if (!checked[u]) {
+			ret += max(sizes[u], sizes[v]);
+			checked[u] = true;
+			checked[v] = true;
 		}
 	}
-
 	return ret;
 }
 
@@ -86,11 +83,6 @@ int main() {
 	int cs; cin >> cs;
 	while (cs--) {
 		int n, m; cin >> n >> m;
-
-		parent.clear();
-		ranks.clear();
-		sizes.clear();
-		enemy.clear();
 
 		parent = vector<int>(n, 0);
 		ranks = vector<int>(n, 0);
@@ -104,13 +96,16 @@ int main() {
 			string strLike;
 			int u, v;
 			cin >> strLike >> u >> v;
+
+			if (!toggle) continue; // continue 해서 input 을 모두 받아야 한다.
+
 			if (strLike == "ACK" && (toggle = ack(u, v)) == false) {
 				cout << "CONTRADICTION AT " << i + 1 << '\n';
-				break;
+				//break; 안됨! input 을 모두 받아야 한다.
 			}
 			else if (strLike == "DIS" && (toggle = dis(u, v)) == false) {
 				cout << "CONTRADICTION AT " << i + 1 << '\n';
-				break;
+				//break; 안됨! input 을 모두 받아야 한다.
 			}
 		}
 		if (toggle)
