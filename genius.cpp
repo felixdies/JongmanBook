@@ -1,3 +1,9 @@
+// algospot genius 문제.
+// 최초 답안의 sliding window 의 index 계산 부분(5 modular 연산)이 복잡해보여서 변경.
+// 곱셈연산이 오래 걸려서 log 덧셈연산으로 바꾸면 될 지 검토했으나,
+// log 변환 하지 않고 곱셈을 덧셈으로 변경 해 보았으나 여전히 시간초과ㅠㅠ
+// <해결!> vector 를 배열로 바꿔서 속도 향상.
+// 2차원 vector 대신 2차원 배열을 사용하니 200배 이상(!!) 빠르다!
 #include <iostream>
 #include <fstream>
 #include <cstring>
@@ -17,6 +23,9 @@
 
 using namespace std;
 
+const int MAX_N = 50 + 1;
+const int MAX_M = 10 + 1;
+
 int main() {
 	//USE_TEXTFILE;
 	//USE_STOPWATCH; PRINT_TIME(start);
@@ -26,22 +35,24 @@ int main() {
 	cout << fixed;
 	cout.precision(10);
 
+	int musicLen[MAX_N];
+	double mat[MAX_N][MAX_N];
+	int likes[MAX_M];
+	double dp[5][MAX_N];
+
 	int cs; cin >> cs;
 	while (cs--) {
 		int n, k, m; cin >> n >> k >> m;
 
-		vector<int> musicLen(n);
 		for (int i = 0; i < n; i++) cin >> musicLen[i];
 
-		vector<vector<double>> mat(n, vector<double>(n, 0));
 		for (int i = 0; i < n; i++)
 			for (int j = 0; j < n; j++)
 				cin >> mat[i][j];
 
-		vector<int> likes(m);
 		for (int i = 0; i < m; i++) cin >> likes[i];
 
-		vector<vector<double>> dp(5, vector<double>(n, 0));
+		memset(dp, 0, sizeof(dp));
 		dp[0][0] = 1;
 
 		int past = 0;
@@ -57,13 +68,13 @@ int main() {
 				for (int j = 0; j < n; j++) {
 					// j번째 음악이 musicLen 전에 시작했을 확률은
 					// 시계방향으로 musicLen[j] 만큼 이동한 위치에 기록돼 있다
-					int prev = (cur + musicLen[j]) % 5; 
-					dp[cur][i] += dp[prev][j] + mat[j][i]; // 곱셈만 덧셈으로 바꾸어 봄-여전히 TLE
+					int prev = (cur + musicLen[j]) % 5;
+					dp[cur][i] += dp[prev][j] * mat[j][i];
 				}
 			}
 		}
 
-		//PRINT_TIME(start); n=4, k=1,000,000 일 때 50초 이상 소요
+		//PRINT_TIME(start);
 
 		for (int i = 0; i < m; i++) {
 			int idx = likes[i];
@@ -72,7 +83,7 @@ int main() {
 				ret += dp[(cur + j) % 5][idx];
 			cout << ret << ' ';
 		}
-		
+
 		cout << '\n';
 	}
 
