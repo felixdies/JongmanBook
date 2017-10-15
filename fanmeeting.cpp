@@ -90,7 +90,32 @@ void subFrom(vector<int>& a, const vector<int>& b) {
 }
 
 vector<int> karatsuba(const vector<int>& a, const vector<int>& b) {
-	vector<int> ret(3, 1);
+	if (b.size() > a.size())
+		return karatsuba(b, a);
+
+	if (a.size() <= 2 || b.size() <= 2)
+		return multiply(a, b);
+
+	int half = a.size() / 2;
+
+	vector<int> a0(a.begin(), a.begin() + half);
+	vector<int> a1(a.begin() + half, a.end());
+	vector<int> b0(b.begin(), b.begin() + half);
+	vector<int> b1(b.begin() + half, b.end());
+
+	vector<int> z0 = karatsuba(a0, b0);
+	vector<int> z1 = karatsuba(a1, b1);
+
+	addTo(a0, a1, 0);
+	addTo(b0, b1, 0);
+	vector<int> z2 = karatsuba(a0, b0);
+	subFrom(z2, z0);
+	subFrom(z2, z1);
+
+	vector<int> ret;
+	addTo(ret, z0, half*half);
+	addTo(ret, z2, half);
+	addTo(ret, z1, 0);
 	return ret;
 }
 
@@ -104,27 +129,6 @@ int main() {
 	cout.precision(10);
 	
 	// test karatsuba()
-	vector<int> a;
-	a.push_back(8);	a.push_back(7);	a.push_back(6);	a.push_back(5);
-
-	vector<int> b;
-	b.push_back(7);	b.push_back(6);	b.push_back(5);
-
-	vector<int> ret;
-
-	ret = multiply(a, b);
-	normalize(ret);
-	for (int i = ret.size() - 1; i >= 0; i--) cout << ret[i];
-	cout << '\n';
-
-	ret = karatsuba(a, b);
-	normalize(ret);
-	for (int i = ret.size() - 1; i >= 0; i--) cout << ret[i];
-	cout << '\n';
-
-	return 0;
-
-	// test multiply()
 	srand(time(NULL));
 	for (int i = 0; i < 1000; i++) {
 		int a1 = rand() % 10000;
@@ -144,8 +148,6 @@ int main() {
 			b2 /= 10;
 		}
 
-		int retNum = a1*b1;
-
 		vector<int> mulRet = multiply(arr1, arr2);
 		int mulRetNum = 0;
 		while (!mulRet.empty()) {
@@ -153,12 +155,19 @@ int main() {
 			mulRet.pop_back();
 		}
 
-		string equal = retNum == mulRetNum ? "O" : "X";
+		vector<int> karRet = karatsuba(arr1, arr2);
+		int karRetNum = 0;
+		while (!karRet.empty()) {
+			karRetNum = karRetNum * 10 + karRet.back();
+			karRet.pop_back();
+		}
+
+		string equal = mulRetNum == karRetNum ? "O" : "X";
 		cout << equal << ' '
 			<< a1 << ' '
 			<< b1 << ' '
-			<< retNum << ' '
-			<< mulRetNum << '\n';
+			<< mulRetNum << ' '
+			<< karRetNum << '\n';
 	}
 
 	return 0;
