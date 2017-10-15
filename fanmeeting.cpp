@@ -1,8 +1,9 @@
-
+#include <cstdlib>
+#include <ctime>
+#include <cassert>
+#include <cstring>
 #include <iostream>
 #include <fstream>
-#include <assert.h>
-#include <cstring>
 #include <string>
 #include <algorithm>
 #include <numeric>
@@ -11,7 +12,6 @@
 #include <set>
 #include <map>
 #include <bitset>
-#include <ctime>
 
 #define USE_TEXTFILE ifstream cin("jinput.txt"); ofstream cout("joutput.txt");
 #define USE_STOPWATCH std::clock_t start; double duration; start = std::clock();
@@ -103,10 +103,10 @@ int main() {
 	cout << fixed;
 	cout.precision(10);
 	
-	// test karatsuba
+	// test karatsuba()
 	vector<int> a;
 	a.push_back(8);	a.push_back(7);	a.push_back(6);	a.push_back(5);
-	
+
 	vector<int> b;
 	b.push_back(7);	b.push_back(6);	b.push_back(5);
 
@@ -123,6 +123,46 @@ int main() {
 	cout << '\n';
 
 	return 0;
+
+	// test multiply()
+	srand(time(NULL));
+	for (int i = 0; i < 1000; i++) {
+		int a1 = rand() % 10000;
+		int a2 = a1;
+		int b1 = rand() % 10000;
+		int b2 = b1;
+
+		vector<int> arr1;
+		while (a2) {
+			arr1.push_back(a2 % 10);
+			a2 /= 10;
+		}
+
+		vector<int> arr2;
+		while (b2) {
+			arr2.push_back(b2 % 10);
+			b2 /= 10;
+		}
+
+		int retNum = a1*b1;
+
+		vector<int> mulRet = multiply(arr1, arr2);
+		int mulRetNum = 0;
+		while (!mulRet.empty()) {
+			mulRetNum = mulRetNum * 10 + mulRet.back();
+			mulRet.pop_back();
+		}
+
+		string equal = retNum == mulRetNum ? "O" : "X";
+		cout << equal << ' '
+			<< a1 << ' '
+			<< b1 << ' '
+			<< retNum << ' '
+			<< mulRetNum << '\n';
+	}
+
+	return 0;
+
 	
 	int cs; cin >> cs;
 	while (cs--) {
