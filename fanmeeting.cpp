@@ -33,6 +33,9 @@ void normalize(vector<int>& num) {
 		num.push_back(up % 10);
 		up /= 10;
 	}
+	
+	while (num.size() > 1 && num.back() == 0)
+		num.pop_back();
 }
 
 vector<int> multiply(const vector<int>& a, const vector<int>& b) {
@@ -51,6 +54,8 @@ vector<int> multiply(const vector<int>& a, const vector<int>& b) {
 // a+=b*(10^k)
 void addTo(vector<int>& a, const vector<int>& b, int k) {
 	int up = 0;
+
+	while (a.size() < k)a.push_back(0);
 
 	int idx = k;
 	// assign to a[idx]
@@ -81,6 +86,7 @@ void subFrom(vector<int>& a, const vector<int>& b) {
 		if (a[i] < 0) {
 			assert(i < a.size() - 1); // a<b!!
 			a[i + 1] -= 1;
+			a[i] += 10;
 		}
 	}
 
@@ -113,9 +119,9 @@ vector<int> karatsuba(const vector<int>& a, const vector<int>& b) {
 	subFrom(z2, z1);
 
 	vector<int> ret;
-	addTo(ret, z0, half*half);
+	addTo(ret, z0, 0);
 	addTo(ret, z2, half);
-	addTo(ret, z1, 0);
+	addTo(ret, z1, half*2);
 	return ret;
 }
 
@@ -129,11 +135,11 @@ int main() {
 	cout.precision(10);
 	
 	// test karatsuba()
-	srand(time(NULL));
-	for (int i = 0; i < 1000; i++) {
-		int a1 = rand() % 10000;
+	//srand(time(NULL));
+	for (int i = 0; i < 2; i++) {
+		int a1 = rand();
 		int a2 = a1;
-		int b1 = rand() % 10000;
+		int b1 = rand();
 		int b2 = b1;
 
 		vector<int> arr1;
@@ -149,14 +155,14 @@ int main() {
 		}
 
 		vector<int> mulRet = multiply(arr1, arr2);
-		int mulRetNum = 0;
+		long long mulRetNum = 0;
 		while (!mulRet.empty()) {
 			mulRetNum = mulRetNum * 10 + mulRet.back();
 			mulRet.pop_back();
 		}
 
 		vector<int> karRet = karatsuba(arr1, arr2);
-		int karRetNum = 0;
+		long long karRetNum = 0;
 		while (!karRet.empty()) {
 			karRetNum = karRetNum * 10 + karRet.back();
 			karRet.pop_back();
