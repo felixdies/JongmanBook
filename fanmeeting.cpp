@@ -127,57 +127,12 @@ vector<int> karatsuba(const vector<int>& a, const vector<int>& b) {
 
 int main() {
 	USE_TEXTFILE;
-	USE_STOPWATCH; //PRINT_TIME(start);
+	//USE_STOPWATCH; //PRINT_TIME(start);
 
 	cin.tie(0);
 	ios_base::sync_with_stdio(false);
 	cout << fixed;
 	cout.precision(10);
-	
-	// test karatsuba()
-	srand(time(NULL));
-	for (int i = 0; i < 1000; i++) {
-		int a1 = rand()/7;
-		int a2 = a1;
-		int b1 = rand()*13;
-		int b2 = b1;
-
-		vector<int> arr1;
-		while (a2) {
-			arr1.push_back(a2 % 10);
-			a2 /= 10;
-		}
-
-		vector<int> arr2;
-		while (b2) {
-			arr2.push_back(b2 % 10);
-			b2 /= 10;
-		}
-
-		vector<int> mulRet = multiply(arr1, arr2);
-		long long mulRetNum = 0;
-		while (!mulRet.empty()) {
-			mulRetNum = mulRetNum * 10 + mulRet.back();
-			mulRet.pop_back();
-		}
-
-		vector<int> karRet = karatsuba(arr1, arr2);
-		long long karRetNum = 0;
-		while (!karRet.empty()) {
-			karRetNum = karRetNum * 10 + karRet.back();
-			karRet.pop_back();
-		}
-
-		string equal = mulRetNum == karRetNum ? "O" : "X";
-		cout << equal << ' '
-			<< a1 << ' '
-			<< b1 << ' '
-			<< mulRetNum << ' '
-			<< karRetNum << '\n';
-	}
-
-	return 0;
-
 	
 	int cs; cin >> cs;
 	while (cs--) {
@@ -185,29 +140,18 @@ int main() {
 		string fan;
 		cin >> member >> fan;
 
-		bitset<MAX_SIZE> members;
-		bitset<MAX_SIZE> fans;
+		vector<int> members(member.size(), 0);
+		vector<int> fans(fan.size(), 0);
 
-		for (int i = 0; i < member.size(); i++) if (member[i] == 'M') members.set(i);
-		for (int i = 0; i < fan.size(); i++) if (fan[i] == 'M') fans.set(i);
+		for (int i = 0; i < member.size(); i++) if (member[i] == 'F') members[i] = 1;
+		for (int i = 0; i < fan.size(); i++) if (fan[i] == 'F') fans[i] = 1;
 
-		int midx = 0;
-		int fidx = 0;
-		int cnt = fan.size() - member.size() + 1;
+		vector<int> mulRet = karatsuba(fans, members);
 		int ret = 0;
-		while (cnt--) {
-			bool hug = true;
-			for (int i = fidx, j = 0; j < member.size(); i++, j++) {
-				if (fans[i] & members[j]) {
-					hug = false;
-					break;
-				}
-			}
-			if (hug) ret++;
-			fidx++;
-		}
+		for (int n : mulRet)
+			if (n == members.size())
+				ret++;
 
-		PRINT_TIME(start);
 		cout << ret << '\n';
 	}
 
