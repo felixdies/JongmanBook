@@ -135,11 +135,11 @@ int main() {
 	cout.precision(10);
 	
 	// test karatsuba()
-	//srand(time(NULL));
-	for (int i = 0; i < 2; i++) {
-		int a1 = rand();
+	srand(time(NULL));
+	for (int i = 0; i < 1000; i++) {
+		int a1 = rand()/7;
 		int a2 = a1;
-		int b1 = rand();
+		int b1 = rand()*13;
 		int b2 = b1;
 
 		vector<int> arr1;
