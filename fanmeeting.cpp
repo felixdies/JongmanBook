@@ -47,32 +47,30 @@ vector<int> multiply(const vector<int>& a, const vector<int>& b) {
 		}
 	}
 
-	normalize(ret);
+	//normalize(ret);
+	while (ret.size() > 1 && ret.back() == 0)
+		ret.pop_back();
+
 	return ret;
 }
 
 // a+=b*(10^k)
 void addTo(vector<int>& a, const vector<int>& b, int k) {
-	int up = 0;
-
 	while (a.size() < k)a.push_back(0);
 
 	int idx = k;
 	// assign to a[idx]
 	for (; idx < a.size(); idx++) {
-		int sum = a[idx] + up;
+		int sum = a[idx];
 		if (idx - k < b.size()) sum += b[idx - k];
-		up = sum / 10;
-		a[idx] = sum % 10;
+		a[idx] = sum;
 	}
 	// push_back to a
-	for (; up || idx - k < b.size(); idx++) {
-		int sum = up;
-		if (idx - k < b.size()) sum += b[idx - k];
-		up = sum / 10;
-		sum %= 10;
-		a.push_back(sum);
+	for (idx -= k; idx < b.size(); idx++) {
+		a.push_back(b[idx]);
 	}
+
+	while (a.size() > 1 && a.back() == 0) a.pop_back();
 
 	return;
 }
@@ -102,12 +100,15 @@ vector<int> karatsuba(const vector<int>& a, const vector<int>& b) {
 	if (a.size() <= 2 || b.size() <= 2)
 		return multiply(a, b);
 
+	if (*max_element(a.begin(), a.end()) == 0 || *max_element(b.begin(), b.end()) == 0)
+		return vector<int>();
+
 	int half = a.size() / 2;
 
 	vector<int> a0(a.begin(), a.begin() + half);
 	vector<int> a1(a.begin() + half, a.end());
-	vector<int> b0(b.begin(), b.begin() + half);
-	vector<int> b1(b.begin() + half, b.end());
+	vector<int> b0(b.begin(), b.begin() + min<int>(b.size(), half));
+	vector<int> b1(b.begin() + min<int>(b.size(), half), b.end());
 
 	vector<int> z0 = karatsuba(a0, b0);
 	vector<int> z1 = karatsuba(a1, b1);
@@ -143,13 +144,13 @@ int main() {
 		vector<int> members(member.size(), 0);
 		vector<int> fans(fan.size(), 0);
 
-		for (int i = 0; i < member.size(); i++) if (member[i] == 'F') members[i] = 1;
-		for (int i = 0; i < fan.size(); i++) if (fan[i] == 'F') fans[i] = 1;
+		for (int i = 0; i < member.size(); i++) if (member[i] == 'M') members[i] = 1;
+		for (int i = 0; i < fan.size(); i++) if (fan[i] == 'M') fans[i] = 1;
 
 		vector<int> mulRet = karatsuba(fans, members);
 		int ret = 0;
 		for (int n : mulRet)
-			if (n == members.size())
+			if (n == 0)
 				ret++;
 
 		cout << ret << '\n';
