@@ -19,116 +19,91 @@
 
 using namespace std;
 
-#define MAX_SIZE 200000
+#define MAX_SIZE 200001
 
-// 자릿수 올림 처리
-void normalize(vector<int>& num) {
-	int up = 0;
-	for (int i = 0; i < num.size(); i++) {
-		num[i] += up;
-		up = num[i] / 10;
-		num[i] %= 10;
-	}
-	while (up) {
-		num.push_back(up % 10);
-		up /= 10;
-	}
-	
-	while (num.size() > 1 && num.back() == 0)
-		num.pop_back();
-}
+vector<int> multiply(int* a, int asz, int* b, int bsz) {
+	vector<int> ret(asz + bsz, 0);
 
-vector<int> multiply(const vector<int>& a, const vector<int>& b) {
-	vector<int> ret(a.size() + b.size(), 0);
-
-	for (int i = 0; i < a.size(); i++) {
-		for (int j = 0; j < b.size(); j++) {
+	for (int i = 0; i < asz; i++) {
+		for (int j = 0; j < bsz; j++) {
 			ret[i + j] += a[i] * b[j];
 		}
 	}
-
-	//normalize(ret);
-	while (ret.size() > 1 && ret.back() == 0)
-		ret.pop_back();
 
 	return ret;
 }
 
 // a+=b*(10^k)
 void addTo(vector<int>& a, const vector<int>& b, int k) {
-	while (a.size() < k)a.push_back(0);
-
-	int idx = k;
-	// assign to a[idx]
-	for (; idx < a.size(); idx++) {
-		int sum = a[idx];
-		if (idx - k < b.size()) sum += b[idx - k];
-		a[idx] = sum;
-	}
-	// push_back to a
-	for (idx -= k; idx < b.size(); idx++) {
-		a.push_back(b[idx]);
+	if (a.size() < k + b.size()) {
+		vector<int> temp(k + b.size(), 0);
+		for (int i = 0; i < a.size(); i++)
+			temp[i] = a[i];
+		a = temp;
 	}
 
-	while (a.size() > 1 && a.back() == 0) a.pop_back();
+	for (int i = 0; i < b.size(); i++) {
+		a[k + i] += b[i];
+	}
 
 	return;
 }
 
 // a-=b, assume a>=b
 void subFrom(vector<int>& a, const vector<int>& b) {
-	assert(a.size() >= b.size()); // a<b!!
-
-	for (int i = 0; i < b.size(); i++) {
+	// b.size() could be larger than a.size() when the leading number is 0
+	for (int i = 0; i < a.size() && i < b.size(); i++)
 		a[i] -= b[i];
-		if (a[i] < 0) {
-			assert(i < a.size() - 1); // a<b!!
-			a[i + 1] -= 1;
-			a[i] += 10;
-		}
-	}
-
-	while (a.size() > 1 && a.back() == 0) a.pop_back();
-
 	return;
 }
 
-vector<int> karatsuba(const vector<int>& a, const vector<int>& b) {
-	if (b.size() > a.size())
-		return karatsuba(b, a);
+vector<int> karatsuba(int* a, int asz, int* b, int bsz) {
+	if (bsz > asz)
+		return karatsuba(b, bsz, a, asz);
 
-	if (a.size() <= 2 || b.size() <= 2)
-		return multiply(a, b);
+	if (asz <= 50)
+		return multiply(a, asz, b, bsz);
 
-	if (*max_element(a.begin(), a.end()) == 0 || *max_element(b.begin(), b.end()) == 0)
-		return vector<int>();
+	int half = asz / 2;
 
-	int half = a.size() / 2;
-
+	/*
 	vector<int> a0(a.begin(), a.begin() + half);
 	vector<int> a1(a.begin() + half, a.end());
 	vector<int> b0(b.begin(), b.begin() + min<int>(b.size(), half));
 	vector<int> b1(b.begin() + min<int>(b.size(), half), b.end());
+	*/
 
-	vector<int> z0 = karatsuba(a0, b0);
-	vector<int> z1 = karatsuba(a1, b1);
+	vector<int> z0 = karatsuba(a, half, b, min(bsz, half));
+	vector<int> z1;
+	if (bsz > half)
+		z1 = karatsuba(a + half, asz - half, b + half, bsz - half);
 
-	addTo(a0, a1, 0);
-	addTo(b0, b1, 0);
-	vector<int> z2 = karatsuba(a0, b0);
+	int* a0 = new int[half];
+	for (int i = 0; i < half; i++) a0[i] = a[i];
+	for (int i = half; i < asz; i++) a0[i-half] += a[i];
+
+	int* b0 = new int[min(bsz, half)];
+	for (int i = 0; i < min(bsz, half); i++) b0[i] = b[i];
+	for (int i = half; i < bsz; i++) b0[i - half] += b[i];
+
+	vector<int> z2 = karatsuba(a0, half, b0, min(bsz, half));
+	
+	delete[] a0;
+	delete[] b0;
+
 	subFrom(z2, z0);
 	subFrom(z2, z1);
 
 	vector<int> ret;
 	addTo(ret, z0, 0);
 	addTo(ret, z2, half);
-	addTo(ret, z1, half*2);
+	addTo(ret, z1, half + half);
 	return ret;
 }
 
 int main() {
 	USE_TEXTFILE;
-	//USE_STOPWATCH; //PRINT_TIME(start);
+	USE_STOPWATCH; //PRINT_TIME(start);
 
 	cin.tie(0);
 	ios_base::sync_with_stdio(false);
@@ -141,19 +116,29 @@ int main() {
 		string fan;
 		cin >> member >> fan;
 
-		vector<int> members(member.size(), 0);
-		vector<int> fans(fan.size(), 0);
+		int M = member.size();
+		int F = fan.size();
 
-		for (int i = 0; i < member.size(); i++) if (member[i] == 'M') members[i] = 1;
-		for (int i = 0; i < fan.size(); i++) if (fan[i] == 'M') fans[i] = 1;
+		int* members = new int[M];
+		memset(members, 0, M);
+		int* fans = new int[F];
+		memset(fans, 0, F);
 
-		vector<int> mulRet = karatsuba(fans, members);
+		for (int i = 0; i < M; i++) members[M - i - 1] = member[i] == 'M';
+		for (int i = 0; i < F; i++) fans[i] = fan[i] == 'M';
+		
+		vector<int> mulRet = karatsuba(fans, F, members, M);
+		
 		int ret = 0;
-		for (int n : mulRet)
-			if (n == 0)
+		for (int i = M - 1; i < F; i++)
+			if (mulRet[i] == 0)
 				ret++;
 
+		PRINT_TIME(start);
 		cout << ret << '\n';
+
+		delete[] members;
+		delete[] fans;
 	}
 
 	return 0;
